@@ -32,7 +32,7 @@ def main():
     stage.set_color(clutter.Color(red=0xff, green=0xcc, blue=0xcc, alpha=0xff))
     #stage.set_size(width=1024, height=768)
     stage.set_resolution(width=1024,height=768)
-    stage.add(newwindow)
+    stage.add(newbutton)
 
     newbutton.show()
     newbutton.connect("clicked",clicknewbutton)

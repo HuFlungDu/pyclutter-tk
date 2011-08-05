@@ -4,8 +4,9 @@ import gobject
 from xml.etree import ElementTree as ET
 import Texture
 import Text
+import Widget
 
-class ImageButton(clutter.Group):
+class ImageButton(Widget.GroupWidget,clutter.Group):
     __gtype_name__ = 'ImageButton'
     __gsignals__ = {
                 'clicked' : ( gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, (gobject.TYPE_PYOBJECT,) ),
@@ -14,40 +15,6 @@ class ImageButton(clutter.Group):
                 'leave' : ( gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, (gobject.TYPE_PYOBJECT,) ),
                 'motion' : ( gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, (gobject.TYPE_PYOBJECT,) ),
         }
-    _oldsetx = clutter.Group.set_x
-    def set_x(self,x):
-        if self.get_stage() is None:
-            self._oldsetx(x)
-        else:
-            self.realx = x
-            stage = self.get_stage()
-            resolution = stage.get_resolution()
-            self._oldsetx(self.realx*(float(stage.get_width())/resolution[0]))
-    _oldgetx = clutter.Group.get_x
-    def get_x(self):
-        return self.realx
-    _oldsety = clutter.Group.set_y
-    def set_y(self,y):
-        if self.get_stage() is None:
-            self._oldsety(y)
-        else:
-            self.realy = y
-            stage = self.get_stage()
-            resolution = stage.get_resolution()
-            self._oldsety(self.realy*(float(stage.get_height())/resolution[1]))
-        
-    _oldgety = clutter.Group.get_y
-    def get_y(self):
-        return self.realy
-
-    def reallocate(self,stage,actorbox,flags):
-        resolution = stage.get_resolution()
-        self.set_x(self.realx)
-        self.set_y(self.realy)
-        self.set_height(self.h*(float(stage.get_height())/resolution[1]))
-        self.set_width(self.w*(float(stage.get_width())/resolution[0]))
-        for i in self.get_children():
-            i.reallocate(stage,actorbox,flags)
 
     def __init__(self,theme,width,height):
         self.w = width
