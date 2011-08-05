@@ -1,0 +1,25 @@
+<!--A GTK adwaita based theme -->
+<GUI>
+<window>
+	<base type="gradient">
+		<gradient type="linear" color1="edeceb" color2="edeceb" start="top-left" end="bottom-left"/>
+	</base>
+</window>
+<button>
+	<out type="gradient">
+		<rounded topleft="20" topright="20" bottomleft="20" bottomright="20"/>
+		<gradient type="linear" color1="f3f5f3" color2="d9dcd9" start="top-left" end="bottom-left"/>
+		<border color="cbcecb" top="2" bottom="2" left="2" right="2"/>
+	</out>
+	<in type="gradient">
+		<rounded topleft="20" topright="20" bottomleft="20" bottomright="20"/>
+		<gradient type="linear" color1="cbcecb" color2="d9dcd9" start="top-left" end="bottom-left"/>
+		<border color="cbcecb" top="2" bottom="2" left="2" right="2"/>
+	</in>
+	<hover type="gradient">
+		<rounded topleft="20" topright="20" bottomleft="20" bottomright="20"/>
+		<gradient type="linear" color1="FFFFFF" color2="d9dcd9" start="top-left" end="bottom-left"/>
+		<border color="cbcecb" top="2" bottom="2" left="2" right="2"/>
+	</hover>
+</button>
+</GUI>
