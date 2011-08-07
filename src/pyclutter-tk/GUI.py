@@ -1,6 +1,7 @@
 import clutter
 import gobject
 
+
 class GUI(clutter.Stage):
     _resolutionx = 1024
     _resolutiony = 768
@@ -9,23 +10,23 @@ class GUI(clutter.Stage):
         self.width = actorbox.x2 - actorbox.x1
         for i in self.get_children():
             i.reallocate(self,actorbox,flags)
-    def __init__(self):
+    def __init__(self, windowmanager = None):
         clutter.Stage.__init__(self)
         self.connect('button-release-event', self.releaseall)
         self.connect('allocation-changed',self.reallocate)
-        self._windowmanager = None
+        if windowmanager != None:
+            self._windowmanager = windowmanager
+        else:
+            import StandardWindowManager
+            self._windowmanager = StandardWindowManager.WindowManager()
+                    
+        
+        
     def set_resolution(self,width=1024,height=768):
         self._resolutionx = width
         self._resolutiony = height
     def get_resolution(self):
         return (self._resolutionx,self._resolutiony)
-    def scaletores(self):
-        resolution = self.get_resolution()
-        for i in self.get_children():
-            if hasattr(i,'scaletores'):
-                i.scaletores()
-            elif hasattr(i,'set_scale'):
-                i.set_scale(float(stage.get_width)/resolution[0],float(stage.get_height)/resolution[1])
     def releaseall(self,stage, event):
         for i in stage.get_children():
             i.releaseall(stage,event)

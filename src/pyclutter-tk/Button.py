@@ -129,6 +129,10 @@ class ImageButton(Widget.GroupWidget,clutter.Group):
             xml = self.hoverxml
         if xml.get("type") == "gradient":
             button=Texture.CairoTexture(int(self.w), int(self.h))
+            constraint = clutter.BindConstraint(self,clutter.BIND_SIZE,0)
+            button.add_constraint(constraint)
+            constraint = clutter.BindConstraint(self,clutter.BIND_POSITION,0)
+            button.add_constraint(constraint)
             context = button.cairo_create()
             context.scale(self.w, self.h)
             gradient = xml.find("gradient")
@@ -271,8 +275,10 @@ class ImageButton(Widget.GroupWidget,clutter.Group):
             image=xml.find("image")
             imagepath=image.get("file")
             button=Texture.Texture(self.themepath+"/"+imagepath)
-            button.set_width(self.w)
-            button.set_height(self.h)
+            constraint = clutter.BindConstraint(self,clutter.BIND_SIZE,0)
+            button.add_constraint(constraint)
+            constraint = clutter.BindConstraint(self,clutter.BIND_POSITION,0)
+            button.add_constraint(constraint)
             
         return button
 
@@ -284,8 +290,8 @@ class LabelButton(ImageButton):
         resolution = stage.get_resolution()
         self.set_x(self.realx)
         self.set_y(self.realy)
-        self.set_height(self.h*(float(stage.get_height())/resolution[1]))
-        self.set_width(self.w*(float(stage.get_width())/resolution[0]))
+        self.set_height(self.h)
+        self.set_width(self.w)
         
         for i in self.get_children():
             i.reallocate(stage,actorbox,flags)

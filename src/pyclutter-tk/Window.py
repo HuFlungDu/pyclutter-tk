@@ -5,6 +5,9 @@ from xml.etree import ElementTree as ET
 import Texture
 import Widget
 
+class InvalidWindowSize(Exception):
+    pass
+
 class Window(Widget.GroupWidget,clutter.Group):
     __gtype_name__ = 'Window'
     __gsignals__ = {
@@ -13,12 +16,26 @@ class Window(Widget.GroupWidget,clutter.Group):
                 'enter' : ( gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, (gobject.TYPE_PYOBJECT,) ),
                 'leave' : ( gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, (gobject.TYPE_PYOBJECT,) ),
                 'motion' : ( gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, (gobject.TYPE_PYOBJECT,) ),
+                'kill' : ( gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,(gobject.TYPE_PYOBJECT,))
         }
 
-    def __init__(self,theme,name):
+
+    def set_name(self,name):
+        self._name=name
+    def get_name(self):
+        return self._name
+    def __init__(self,theme,name="", height=100,width=100):
+        if height == 0:
+            raise InvalidWindowSize("height of 0 not allowed")
+        if width == 0:
+            raise InvalidWindowSize("width of 0 not allowed")
+        if height < 0 or width < 0:
+            raise InvalidWindowSize("cannot use negative values for window size")
         clutter.Group.__init__(self)
-        self.h=self.get_height()
-        self.w=self.get_width()
+        self._name = name
+        self.h=height
+        self.w=width
+        
         self.realx = self._oldgetx()
         self.realy = self._oldgety()
         self.theme = theme
@@ -57,9 +74,13 @@ class Window(Widget.GroupWidget,clutter.Group):
     def make(self):
         xml = self.basexml
         if xml.get("type") == "gradient":
-            window=Texture.CairoTexture(10, 10)
+            window=Texture.CairoTexture(self.h, self.w)
+            constraint = clutter.BindConstraint(self,clutter.BIND_SIZE,0)
+            window.add_constraint(constraint)
+            constraint = clutter.BindConstraint(self,clutter.BIND_POSITION,0)
+            window.add_constraint(constraint)
             context = window.cairo_create()
-            context.scale(10, 10)
+            context.scale(self.h, self.w)
             gradient = xml.find("gradient")
             
             if gradient.get("type") == "linear":
@@ -158,4 +179,8 @@ class Window(Widget.GroupWidget,clutter.Group):
             image=xml.find("image")
             imagepath=image.get("file")
             window=Texture.Texture(self.themepath+"/"+imagepath)
+            constraint = clutter.BindConstraint(self,clutter.BIND_SIZE,0)
+            window.add_constraint(constraint)
+            constraint = clutter.BindConstraint(self,clutter.BIND_POSITION,0)
+            window.add_constraint(constraint)
         return window

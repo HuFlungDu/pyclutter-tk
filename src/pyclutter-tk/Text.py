@@ -2,7 +2,7 @@ import clutter
 import pango
 import Widget
 
-class Label(Widget.GroupWidget,clutter.Text):
+class Label(clutter.Text):
     
 
     _oldsettext = clutter.Text.set_text
@@ -11,7 +11,31 @@ class Label(Widget.GroupWidget,clutter.Text):
         self.h = self.get_height()
         self.w = self.get_width()
         
-    
+    _oldsetx = clutter.Group.set_x
+    def set_x(self,x):
+        if self.get_stage() is None:
+            self._oldsetx(x)
+        else:
+            self.realx = x
+            stage = self.get_stage()
+            resolution = stage.get_resolution()
+            self._oldsetx(self.realx*(float(stage.get_width())/resolution[0]))
+    _oldgetx = clutter.Group.get_x
+    def get_x(self):
+        return self.realx
+    _oldsety = clutter.Group.set_y
+    def set_y(self,y):
+        if self.get_stage() is None:
+            self._oldsety(y)
+        else:
+            self.realy = y
+            stage = self.get_stage()
+            resolution = stage.get_resolution()
+            self._oldsety(self.realy*(float(stage.get_height())/resolution[1]))
+        
+    _oldgety = clutter.Group.get_y
+    def get_y(self):
+        return self.realy
     def reallocate(self,stage,actorbox,flags):
         resolution = stage.get_resolution()
         self.set_scale((float(stage.get_width())/resolution[0]),
