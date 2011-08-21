@@ -5,6 +5,7 @@ from xml.etree import ElementTree as ET
 import Texture
 import Text
 import Widget
+import math
 
 class ImageButton(Widget.GroupWidget,clutter.Group):
     __gtype_name__ = 'ImageButton'
@@ -24,27 +25,15 @@ class ImageButton(Widget.GroupWidget,clutter.Group):
         self.realx = self._oldgetx()
         self.realy = self._oldgety()
         self.theme = theme
-        self.themepath=("Themes/" + theme)
+        self.themepath=(self.appdatadir+"/Themes/" + theme)
         guixmlfile = open(self.themepath + "/GUI.xml")
         guixml = ET.XML(guixmlfile.read())
         self.buttonxml = guixml.find("button")
         self.outxml = self.buttonxml.find("out")
         self.inxml = self.buttonxml.find("in")
         self.hoverxml = self.buttonxml.find("hover")
-        
-        self._in = self.makestate("in")
-        self._out = self.makestate("out")
-        self._hover = self.makestate("hover")
-        self.add(self._in)
-        self.add(self._out)
-        self.add(self._hover)
-        self._out.show()
-        self._hover.hide()
-        self._in.hide()
-        self._textures = (self._out,
-                            self._hover,
-                            self._in)
-        
+        self._textures = []
+        self.makestates()
         self.set_reactive(True)
         self.connect("button-press-event", self.clicked)
         self.connect("button-release-event", self.released)
@@ -118,7 +107,26 @@ class ImageButton(Widget.GroupWidget,clutter.Group):
             event.y = event.y/(float(stage.get_height())/resolution[1])
             event.x = event.x/(float(stage.get_width())/resolution[0])
         self.emit("motion",event)  
-    
+    def makestates(self):
+        for i in self._textures:
+            self.remove(i)
+        children = self.get_children()
+        self.remove_all()
+        self._in = self.makestate("in")
+        self._out = self.makestate("out")
+        self._hover = self.makestate("hover")
+        self.add(self._in)
+        self.add(self._out)
+        self.add(self._hover)
+        for i in children:
+            self.add(i)
+        self._out.show()
+        self._hover.hide()
+        self._in.hide()
+        self._textures = (self._out,
+                            self._hover,
+                            self._in)
+        
     def makestate(self,state):
         
         if state == "out":
@@ -128,13 +136,13 @@ class ImageButton(Widget.GroupWidget,clutter.Group):
         elif state == "hover":
             xml = self.hoverxml
         if xml.get("type") == "gradient":
-            button=Texture.CairoTexture(int(self.w), int(self.h))
+            h = max(self._oldgetheight(),1)
+            w = max(self._oldgetwidth(),1)
+            button=Texture.CairoTexture(int(w), int(h))
             constraint = clutter.BindConstraint(self,clutter.BIND_SIZE,0)
             button.add_constraint(constraint)
-            constraint = clutter.BindConstraint(self,clutter.BIND_POSITION,0)
-            button.add_constraint(constraint)
             context = button.cairo_create()
-            context.scale(self.w, self.h)
+            context.identity_matrix()
             gradient = xml.find("gradient")
 
             if gradient.get("type") == "linear":
@@ -147,35 +155,35 @@ class ImageButton(Widget.GroupWidget,clutter.Group):
                 if start[0] == "top":
                     pos2 = 0
                 elif start[0] == "mid":
-                    pos2 = .5
+                    pos2 = h/2
                 elif start[0] == "bottom":
-                    pos2 = 1
+                    pos2 = h
                 if start[1] == "left":
                     pos1 = 0
                 elif start[1] == "mid":
-                    pos1 = .5
+                    pos1 = w/2
                 elif start[1] == "right":
-                    pos1 = 1
+                    pos1 = w
                 if end[0] == "top":
                     pos4 = 0
                 elif end[0] == "mid":
-                    pos4 = .5
+                    pos4 = h/2
                 elif end[0] == "bottom":
-                    pos4 = 1
+                    pos4 = h
                 if end[1] == "left":
                     pos3 = 0
                 elif end[1] == "mid":
-                    pos3 = .5
+                    pos3 = w/2
                 elif end[1] == "right":
-                    pos3 = 1
+                    pos3 = w
                 color1 = gradient.get("color1")
                 color2 = gradient.get("color2")
                 color1 = [(int(color1[i]+color1[i+1],16)/float(0xFF)) for i in range(0,len(color1),2)]
                 color2 = [(int(color2[i]+color2[i+1],16)/float(0xFF)) for i in range(0,len(color2),2)]
                 pattern = cairo.LinearGradient(pos1, pos2, pos3, pos4)
-                
+                length = math.sqrt((pos4-pos2)**2+(pos3-pos1)**2)
                 pattern.add_color_stop_rgb(0, color1[0], color1[1],color1[2])
-                pattern.add_color_stop_rgb(1, color2[0], color2[1], color2[2])
+                pattern.add_color_stop_rgb(length, color2[0], color2[1], color2[2])
                 context.set_source(pattern)
 
             elif gradient.get("type") == "radial":
@@ -222,54 +230,34 @@ class ImageButton(Widget.GroupWidget,clutter.Group):
                 context.set_source(pattern)
             
             rounded = xml.find("rounded")
-            r = float(rounded.get("topleft"))*.01
+            r = float(rounded.get("topleft"))
             context.move_to(r,0)                      # Move to A
-            r = float(rounded.get("topright"))*.01
-            context.line_to(1-r,0)                    # Straight line to B
-            context.curve_to(1,0,1,0,1,r)       # Curve to C, Control points are both at Q1
-            r = float(rounded.get("bottomright"))*.01
-            context.line_to(1,1-r)                  # Move to D
-            context.curve_to(1,1,1,1,1-r,1) # Curve to E
-            r = float(rounded.get("bottomleft"))*.01
-            context.line_to(r,1)                    # Line to F
-            context.curve_to(0,1,0,1,0,1-r)       # Curve to G
-            r = float(rounded.get("topleft"))*.01
+            r = float(rounded.get("topright"))
+            context.line_to(w-r,0)                    # Straight line to B
+            context.curve_to(w,0,w,0,w,r)       # Curve to C, Control points are both at Q1
+            r = float(rounded.get("bottomright"))
+            context.line_to(w,h-r)                  # Move to D
+            context.curve_to(w,h,w,h,w-r,h) # Curve to E
+            r = float(rounded.get("bottomleft"))
+            context.line_to(r,h)                    # Line to F
+            context.curve_to(0,h,0,h,0,h-r)       # Curve to G
+            r = float(rounded.get("topleft"))
             context.line_to(0,r)                      # Line to H
             context.curve_to(0,0,0,0,r,0)             # Curve to A
-            #path = context.copy_path()
+
+
+
+            
+            path = context.copy_path()
             context.fill()
-            '''border = xml.find("border")
+            border = xml.find("border")
             color = border.get("color")
             color = [(int(color[i]+color[i+1],16)/float(0xFF)) for i in range(0,len(color),2)]
-            #context.append_path(path)
+            context.append_path(path)
             context.set_source_rgb(color[0],color[1],color[2])
-            #context.set_line_width(.02)'''
-            '''r = float(rounded.get("topleft"))*.01
-            context.move_to(r,0)
-            r = float(rounded.get("topright"))*.01
-            context.line_to(1-r,0)
-            context.curve_to(1,0,1,0,1,r)
-            linewidth=float(border.get("top"))
-            context.set_line_width(linewidth/self.h)
+            context.set_line_width(1)
             context.stroke()
-            context.move_to(1,r)
-            r = float(rounded.get("bottomright"))*.01
-            context.line_to(1,1-r)
-            linewidth=float(border.get("right"))
-            context.set_line_width(linewidth/self.w)
-            context.stroke()
-            context.move_to(1-r,1)
-            r = float(rounded.get("bottomleft"))*.01
-            context.line_to(r,1)
-            linewidth=float(border.get("bottom"))
-            context.set_line_width(linewidth/self.w)
-            context.stroke()
-            context.move_to(0,1-r)
-            r = float(rounded.get("topleft"))*.01
-            context.line_to(0,r)
-            linewidth=float(border.get("left"))
-            context.set_line_width(linewidth/self.w)
-            context.stroke()'''
+            
             del(context)
         elif xml.get("type") == "image":
             image=xml.find("image")
@@ -287,24 +275,30 @@ class LabelButton(ImageButton):
     __gtype_name__ = 'LabelButton'
 
     def reallocate(self,stage,actorbox,flags):
-        resolution = stage.get_resolution()
+        self.resolution = stage.get_resolution()
+        self.stage = stage
         self.set_x(self.realx)
         self.set_y(self.realy)
         self.set_height(self.h)
         self.set_width(self.w)
-        
         for i in self.get_children():
             i.reallocate(stage,actorbox,flags)
         self.recenter()
+    def allocationchanged(self,stage,actorbox,flags):
+        self.set_height(self._oldgetheight()/(float(self.stage.get_height())/self.resolution[1]))
+        self.set_width(self._oldgetwidth()/(float(self.stage.get_width())/self.resolution[0]))
+        self.recenter()
+        self.makestates()
+        pass
     def recenter(self):
-        self._text.set_x((self.w/2)-(self._text.get_width()/2))
-        self._text.set_y((self.h/2)-(self._text.get_height()/2))
+        self._text.set_x((self.get_width()/2)-(self._text.get_width()/2))
+        self._text.set_y((self.get_height()/2)-(self._text.get_height()/2))
     
     def __init__(self,theme,label=" "):
         self.pressed = False
         clutter.Group.__init__(self)
         self.theme = theme
-        self.themepath=("Themes/" + theme)
+        self.themepath=(self.appdatadir+"/Themes/" + theme)
         guixmlfile = open(self.themepath + "/GUI.xml")
         self.realx = self._oldgetx()
         self.realy = self._oldgety()
@@ -345,4 +339,4 @@ class LabelButton(ImageButton):
         self.connect("enter-event", self.enter)
         self.connect("leave-event", self.leave)
         self.connect('motion-event',self.motion)
-        #self.connect('allocation-changed',self.recenter)
+        self.connect('allocation-changed',self.allocationchanged)

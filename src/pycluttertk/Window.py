@@ -18,29 +18,21 @@ class Window(Widget.GroupWidget,clutter.Group):
                 'motion' : ( gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, (gobject.TYPE_PYOBJECT,) ),
                 'kill' : ( gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,(gobject.TYPE_PYOBJECT,))
         }
-
-
     def set_name(self,name):
         self._name=name
     def get_name(self):
         return self._name
-    def __init__(self,theme,name="", height=100,width=100):
-        if height == 0:
-            raise InvalidWindowSize("height of 0 not allowed")
-        if width == 0:
-            raise InvalidWindowSize("width of 0 not allowed")
-        if height < 0 or width < 0:
-            raise InvalidWindowSize("cannot use negative values for window size")
+    def __init__(self,theme,name=""):
         clutter.Group.__init__(self)
         self._name = name
-        self.h=height
-        self.w=width
+        self.h=100
+        self.w=100
         
         self.realx = self._oldgetx()
         self.realy = self._oldgety()
         self.theme = theme
         self.theme = theme
-        self.themepath=("Themes/" + theme)
+        self.themepath=(self.appdatadir+"/Themes/"+theme)
         guixmlfile = open(self.themepath + "/GUI.xml")
         self.realx = self._oldgetx()
         self.realy = self._oldgety()
@@ -56,7 +48,13 @@ class Window(Widget.GroupWidget,clutter.Group):
         self.connect("enter-event", self.enter)
         self.connect("leave-event", self.leave)
         self.connect('motion-event',self.motion)
-
+    def add(self,widget):
+        widget.set_x(0)
+        widget.set_y(0)
+        widget.set_width(self.get_width())
+        widget.set_height(self.get_height())
+        clutter.Group.add(self,widget)
+        
     def releaseall(self,stage,event):
         for i in self.get_children():
             i.releaseall(stage,event)

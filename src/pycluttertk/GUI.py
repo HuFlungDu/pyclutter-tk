@@ -25,6 +25,8 @@ class GUI(clutter.Stage):
     def set_resolution(self,width=1024,height=768):
         self._resolutionx = width
         self._resolutiony = height
+        self.reallocate(self,clutter.ActorBox(0,0,self.get_width(),self.get_height())
+                        ,clutter.AllocationFlags(0))
     def get_resolution(self):
         return (self._resolutionx,self._resolutiony)
     def releaseall(self,stage, event):
