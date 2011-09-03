@@ -7,23 +7,60 @@ import Widget
 
 class InvalidWindowSize(Exception):
     pass
+class AddError(Exception):
+    pass
 
 class Window(Widget.GroupWidget,clutter.Group):
     __gtype_name__ = 'Window'
     __gsignals__ = {
-                'clicked' : ( gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, (gobject.TYPE_PYOBJECT,) ),
-                'released' : ( gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, (gobject.TYPE_PYOBJECT,) ),
-                'enter' : ( gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, (gobject.TYPE_PYOBJECT,) ),
-                'leave' : ( gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, (gobject.TYPE_PYOBJECT,) ),
-                'motion' : ( gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, (gobject.TYPE_PYOBJECT,) ),
-                'kill' : ( gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,(gobject.TYPE_PYOBJECT,))
+                    'clicked' : ( gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, (gobject.TYPE_PYOBJECT,) ),
+                    'released' : ( gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, (gobject.TYPE_PYOBJECT,) ),
+                    'enter' : ( gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, (gobject.TYPE_PYOBJECT,) ),
+                    'leave' : ( gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, (gobject.TYPE_PYOBJECT,) ),
+                    'motion' : ( gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, (gobject.TYPE_PYOBJECT,) ),
+                    'kill' : ( gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,(gobject.TYPE_PYOBJECT,)),
+                    'resized' : ( gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, (gobject.TYPE_PYOBJECT,))
         }
+    def add(self,widget):
+        if not self.widget is None:
+            print "not connected"
+            raise AddError("Can't pack more than 1 widget into a window")
+        else:
+            widget.set_x(0)
+            widget.set_y(0)
+            clutter.Group.add(self,widget)
+            self.widget = widget
+            self.widgetconnect = widget.connect("resized",self._widgetallocationchanged)
+            print "connected"
+    def _widgetallocationchanged(self,stage):
+        if stage.get_width() < self.get_width():
+            self.set_width(max(stage.get_width(),self.get_size_request()[0]))
+        else:
+            self.set_width(stage.get_width())
+        if stage.get_height() < self.get_height():
+            self.set_height(max(stage.get_height(),self.get_size_request()[1]))
+        else:
+            self.set_height(stage.get_height())
+        print self.get_width(),self.get_height()
+
+        print "did get here"
+    def _allocationchanged(self,stage,actorbox,flags):
+        if not self.widget is None:
+            self.widget.set_width(max(self.get_width(),self.widget.get_size_request()[0]))
+            self.widget.set_height(max(self.get_height(),self.widget.get_size_request()[1]))
+        
+    def drop_widget(self):
+        if not self.widget is None:
+            self.remove(self.widget)
+            self.widget = None
     def set_name(self,name):
         self._name=name
     def get_name(self):
         return self._name
     def __init__(self,theme,name=""):
         clutter.Group.__init__(self)
+        self.widget = None
+        self.connect("allocation-changed",self._allocationchanged)
         self._name = name
         self.h=100
         self.w=100
@@ -40,7 +77,7 @@ class Window(Widget.GroupWidget,clutter.Group):
         windowxml = guixml.find("window")
         self.basexml = windowxml.find("base")
         self._windowtex=self.make()
-        self.add(self._windowtex)
+        clutter.Group.add(self, self._windowtex)
         
         self.set_reactive(True)
         self.connect("button-press-event", self.clicked)
@@ -48,12 +85,7 @@ class Window(Widget.GroupWidget,clutter.Group):
         self.connect("enter-event", self.enter)
         self.connect("leave-event", self.leave)
         self.connect('motion-event',self.motion)
-    def add(self,widget):
-        widget.set_x(0)
-        widget.set_y(0)
-        widget.set_width(self.get_width())
-        widget.set_height(self.get_height())
-        clutter.Group.add(self,widget)
+
         
     def releaseall(self,stage,event):
         for i in self.get_children():

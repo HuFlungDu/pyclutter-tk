@@ -21,6 +21,7 @@ def main():
     #newwindow.set_height(200)
     newwindow.request_size(300,200)
     vbox = pycluttertk.VBox()
+    print newwindow
     newwindow.add(vbox)
     vbox.pack(newbutton,True,True,True,
                      clutter.BOX_ALIGNMENT_CENTER,clutter.BOX_ALIGNMENT_CENTER)

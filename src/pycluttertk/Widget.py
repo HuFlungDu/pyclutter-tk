@@ -1,5 +1,6 @@
 import clutter
 import os
+import gobject
 class Widget():
     if os.name != "posix":
         from win32com.shell import shellcon, shell            
@@ -51,6 +52,10 @@ class Widget():
                 self._oldsetwidth(self.w*(float(stage.get_width())/resolution[0]))
         else:
             self.set_width(self.get_size_request()[0])
+        try:
+            self.emit('resized', self)
+        except:
+            pass
     _oldgetwidth = clutter.Actor.get_width
     def get_width(self):
         return self.w
@@ -66,6 +71,10 @@ class Widget():
                 self._oldsetheight(self.h*(float(stage.get_height())/resolution[1]))
         else:
             self.set_height(self.get_size_request()[1])
+        try:
+            self.emit('resized', self)
+        except:
+            pass
     _oldgetheight = clutter.Actor.get_height
     def get_height(self):
         return self.h
