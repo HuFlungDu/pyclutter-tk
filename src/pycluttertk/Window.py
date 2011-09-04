@@ -1,30 +1,33 @@
 import clutter
 import cairo
 import gobject
+import SharedFunctions
+import pycluttertk
+from pycluttertk import Errors
+
 from xml.etree import ElementTree as ET
 import Texture
 import Widget
 
-class InvalidWindowSize(Exception):
-    pass
-class AddError(Exception):
-    pass
+
+
+
 
 class Window(Widget.GroupWidget,clutter.Group):
     __gtype_name__ = 'Window'
     __gsignals__ = {
-                    'clicked' : ( gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, (gobject.TYPE_PYOBJECT,) ),
-                    'released' : ( gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, (gobject.TYPE_PYOBJECT,) ),
-                    'enter' : ( gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, (gobject.TYPE_PYOBJECT,) ),
-                    'leave' : ( gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, (gobject.TYPE_PYOBJECT,) ),
-                    'motion' : ( gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, (gobject.TYPE_PYOBJECT,) ),
-                    'kill' : ( gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,(gobject.TYPE_PYOBJECT,)),
-                    'resized' : ( gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, (gobject.TYPE_PYOBJECT,))
+                    'clicked' : ( gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, (gobject.TYPE_PYOBJECT,) ), #@UndefinedVariable
+                    'released' : ( gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, (gobject.TYPE_PYOBJECT,) ), #@UndefinedVariable
+                    'enter' : ( gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, (gobject.TYPE_PYOBJECT,) ), #@UndefinedVariable
+                    'leave' : ( gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, (gobject.TYPE_PYOBJECT,) ), #@UndefinedVariable
+                    'motion' : ( gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, (gobject.TYPE_PYOBJECT,) ), #@UndefinedVariable
+                    'kill' : ( gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,(gobject.TYPE_PYOBJECT,)), #@UndefinedVariable
+                    'resized' : ( gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, (gobject.TYPE_PYOBJECT,)) #@UndefinedVariable
         }
     def add(self,widget):
         if not self.widget is None:
             print "not connected"
-            raise AddError("Can't pack more than 1 widget into a window")
+            raise Errors.AddError("Can't pack more than 1 widget into a window")
         else:
             widget.set_x(0)
             widget.set_y(0)
@@ -32,7 +35,7 @@ class Window(Widget.GroupWidget,clutter.Group):
             self.widget = widget
             self.widgetconnect = widget.connect("resized",self._widgetallocationchanged)
             print "connected"
-    def _widgetallocationchanged(self,stage):
+    def _widgetallocationchanged(self,stage,widget):
         if stage.get_width() < self.get_width():
             self.set_width(max(stage.get_width(),self.get_size_request()[0]))
         else:
@@ -58,21 +61,18 @@ class Window(Widget.GroupWidget,clutter.Group):
     def get_name(self):
         return self._name
     def __init__(self,theme,name=""):
+        Widget.GroupWidget.__init__(self)
         clutter.Group.__init__(self)
         self.widget = None
         self.connect("allocation-changed",self._allocationchanged)
         self._name = name
-        self.h=100
-        self.w=100
+        self._height=100
+        self._width=100
         
-        self.realx = self._oldgetx()
-        self.realy = self._oldgety()
         self.theme = theme
         self.theme = theme
         self.themepath=(self.appdatadir+"/Themes/"+theme)
         guixmlfile = open(self.themepath + "/GUI.xml")
-        self.realx = self._oldgetx()
-        self.realy = self._oldgety()
         guixml = ET.XML(guixmlfile.read())
         windowxml = guixml.find("window")
         self.basexml = windowxml.find("base")
@@ -100,102 +100,21 @@ class Window(Widget.GroupWidget,clutter.Group):
         self.emit("leave",event)
     def motion(self,stage,event):
         self.emit("motion",event)
-        
+
     def make(self):
         xml = self.basexml
         if xml.get("type") == "gradient":
-            window=Texture.CairoTexture(self.h, self.w)
+            window=Texture.CairoTexture(self._height, self._width)
             constraint = clutter.BindConstraint(self,clutter.BIND_SIZE,0)
             window.add_constraint(constraint)
             constraint = clutter.BindConstraint(self,clutter.BIND_POSITION,0)
             window.add_constraint(constraint)
             context = window.cairo_create()
-            context.scale(self.h, self.w)
+            context.scale(self._height, self._width)
             gradient = xml.find("gradient")
             
-            if gradient.get("type") == "linear":
-                start = gradient.get("start").split("-")
-                end = gradient.get("end").split("-")
-                pos1 = 0
-                pos2 = 0
-                pos3 = 0
-                pos4 = 0
-                if start[0] == "top":
-                    pos2 = 0
-                elif start[0] == "mid":
-                    pos2 = .5
-                elif start[0] == "bottom":
-                    pos2 = 1
-                if start[1] == "left":
-                    pos1 = 0
-                elif start[1] == "mid":
-                    pos1 = .5
-                elif start[1] == "right":
-                    pos1 = 1
-                if end[0] == "top":
-                    pos4 = 0
-                elif end[0] == "mid":
-                    pos4 = .5
-                elif end[0] == "bottom":
-                    pos4 = 1
-                if end[1] == "left":
-                    pos3 = 0
-                elif end[1] == "mid":
-                    pos3 = .5
-                elif end[1] == "right":
-                    pos3 = 1
-                color1 = gradient.get("color1")
-                color2 = gradient.get("color2")
-                color1 = [(int(color1[i]+color1[i+1],16)/float(0xFF)) for i in range(0,len(color1),2)]
-                color2 = [(int(color2[i]+color2[i+1],16)/float(0xFF)) for i in range(0,len(color2),2)]
-                pattern = cairo.LinearGradient(pos1, pos2, pos3, pos4)
-                
-                pattern.add_color_stop_rgb(0, color1[0], color1[1],color1[2])
-                pattern.add_color_stop_rgb(1, color2[0], color2[1], color2[2])
-                context.set_source(pattern)
-
-            elif gradient.get("type") == "radial":
-                start = gradient.get("start").split("-")
-                end = gradient.get("end").split("-")
-                pos1 = 0
-                pos2 = 0
-                pos3 = 0
-                pos4 = 0
-                if start[0] == "top":
-                    pos2 = 0
-                elif start[0] == "mid":
-                    pos2 = .5
-                elif start[0] == "bottom":
-                    pos2 = 1
-                if start[1] == "left":
-                    pos1 = 0
-                elif start[1] == "mid":
-                    pos1 = .5
-                elif start[1] == "right":
-                    pos1 = 1
-                if end[0] == "top":
-                    pos4 = 0
-                elif end[0] == "mid":
-                    pos4 = .5
-                elif end[0] == "bottom":
-                    pos4 = 1
-                if end[1] == "left":
-                    pos3 = 0
-                elif end[1] == "mid":
-                    pos3 = .5
-                elif end[1] == "right":
-                    pos3 = 1
-                color1 = gradient.get("color1")
-                color2 = gradient.get("color2")
-                color1 = [(int(color1[i]+color1[i+1],16)/float(0xFF)) for i in range(0,len(color1),2)]
-                color2 = [(int(color2[i]+color2[i+1],16)/float(0xFF)) for i in range(0,len(color2),2)]
-                radius1 = float(gradient.get("radius1"))*.01
-                radius2 = float(gradient.get("radius2"))*.01
-                pattern = cairo.RadialGradient(pos1, pos2, radius1, pos3, pos4, radius2)
-                
-                pattern.add_color_stop_rgb(0, color1[0], color1[1],color1[2])
-                pattern.add_color_stop_rgb(1, color2[0], color2[1], color2[2])
-                context.set_source(pattern)
+            pattern = SharedFunctions.MakeGradient(gradient, self._height, self._width)
+            context.set_source(pattern)
             
             
             context.move_to(0,0)                    

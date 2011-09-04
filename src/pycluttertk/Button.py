@@ -1,30 +1,31 @@
 import clutter
-import cairo
 import gobject
 from xml.etree import ElementTree as ET
 import Texture
 import Text
 import Widget
-import math
+import SharedFunctions
+import pycluttertk
 
 class ImageButton(Widget.GroupWidget,clutter.Group):
     __gtype_name__ = 'ImageButton'
     __gsignals__ = {
-                'clicked' : ( gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, (gobject.TYPE_PYOBJECT,) ),
-                'released' : ( gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, (gobject.TYPE_PYOBJECT,) ),
-                'enter' : ( gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, (gobject.TYPE_PYOBJECT,) ),
-                'leave' : ( gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, (gobject.TYPE_PYOBJECT,) ),
-                'motion' : ( gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, (gobject.TYPE_PYOBJECT,) ),
-                'resized' : ( gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, (gobject.TYPE_PYOBJECT,))
+                'clicked' : ( gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, (gobject.TYPE_PYOBJECT,) ), #@UndefinedVariable
+                'released' : ( gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, (gobject.TYPE_PYOBJECT,) ), #@UndefinedVariable
+                'enter' : ( gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, (gobject.TYPE_PYOBJECT,) ), #@UndefinedVariable
+                'leave' : ( gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, (gobject.TYPE_PYOBJECT,) ), #@UndefinedVariable
+                'motion' : ( gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, (gobject.TYPE_PYOBJECT,) ), #@UndefinedVariable
+                'resized' : ( gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, (gobject.TYPE_PYOBJECT,)) #@UndefinedVariable
         }
 
     def __init__(self,theme,width,height):
-        self.w = width
-        self.h = height
+        Widget.GroupWidget.__init__(self)
+        self._width = width
+        self._height = height
         self.pressed = False
         clutter.Group.__init__(self)
-        self.realx = self._oldgetx()
-        self.realy = self._oldgety()
+        self._realx = self._oldgetx()
+        self._realy = self._oldgety()
         self.theme = theme
         self.themepath=(self.appdatadir+"/Themes/" + theme)
         guixmlfile = open(self.themepath + "/GUI.xml")
@@ -58,10 +59,8 @@ class ImageButton(Widget.GroupWidget,clutter.Group):
                 i.set_y(i.get_y()+1)
                 i.set_x(i.get_x()+1)
         if self.get_stage() is not None:
-            stage = self.get_stage()
-            resolution = stage.get_resolution()
-            event.y = event.y/(float(stage.get_height())/resolution[1])
-            event.x = event.x/(float(stage.get_width())/resolution[0])
+            event.y = event.y/(float(pycluttertk._stage.get_height())/pycluttertk._resolution[1])
+            event.x = event.x/(float(pycluttertk._stage.get_width())/pycluttertk._resolution[0])
         self.emit("clicked",event)
     def released(self,stage,event):
         if self.pressed:
@@ -74,10 +73,9 @@ class ImageButton(Widget.GroupWidget,clutter.Group):
                     i.set_y(i.get_y()-1)
                     i.set_x(i.get_x()-1)
             if self.get_stage() is not None:
-                stage = self.get_stage()
-                resolution = stage.get_resolution()
-                event.y = event.y/(float(stage.get_height())/resolution[1])
-                event.x = event.x/(float(stage.get_width())/resolution[0])
+                event.y = event.y/(float(pycluttertk._stage.get_height())/pycluttertk._resolution[1])
+                event.x = event.x/(float(pycluttertk._stage.get_width())/pycluttertk._resolution[0])
+                
             self.emit("released",event)
     def enter(self,stage,event):
         if self.pressed:
@@ -128,8 +126,9 @@ class ImageButton(Widget.GroupWidget,clutter.Group):
                             self._hover,
                             self._in)
         
+
+
     def makestate(self,state):
-        
         if state == "out":
             xml = self.outxml
         elif state == "in":
@@ -137,8 +136,8 @@ class ImageButton(Widget.GroupWidget,clutter.Group):
         elif state == "hover":
             xml = self.hoverxml
         if xml.get("type") == "gradient":
-            h = max(self._oldgetheight(),1)
-            w = max(self._oldgetwidth(),1)
+            h = max(self.get_height(),1)
+            w = max(self.get_width(),1)
             button=Texture.CairoTexture(int(w), int(h))
             constraint = clutter.BindConstraint(self,clutter.BIND_SIZE,0)
             button.add_constraint(constraint)
@@ -146,89 +145,8 @@ class ImageButton(Widget.GroupWidget,clutter.Group):
             context.identity_matrix()
             gradient = xml.find("gradient")
 
-            if gradient.get("type") == "linear":
-                start = gradient.get("start").split("-")
-                end = gradient.get("end").split("-")
-                pos1 = 0
-                pos2 = 0
-                pos3 = 0
-                pos4 = 0
-                if start[0] == "top":
-                    pos2 = 0
-                elif start[0] == "mid":
-                    pos2 = h/2
-                elif start[0] == "bottom":
-                    pos2 = h
-                if start[1] == "left":
-                    pos1 = 0
-                elif start[1] == "mid":
-                    pos1 = w/2
-                elif start[1] == "right":
-                    pos1 = w
-                if end[0] == "top":
-                    pos4 = 0
-                elif end[0] == "mid":
-                    pos4 = h/2
-                elif end[0] == "bottom":
-                    pos4 = h
-                if end[1] == "left":
-                    pos3 = 0
-                elif end[1] == "mid":
-                    pos3 = w/2
-                elif end[1] == "right":
-                    pos3 = w
-                color1 = gradient.get("color1")
-                color2 = gradient.get("color2")
-                color1 = [(int(color1[i]+color1[i+1],16)/float(0xFF)) for i in range(0,len(color1),2)]
-                color2 = [(int(color2[i]+color2[i+1],16)/float(0xFF)) for i in range(0,len(color2),2)]
-                pattern = cairo.LinearGradient(pos1, pos2, pos3, pos4)
-                length = math.sqrt((pos4-pos2)**2+(pos3-pos1)**2)
-                pattern.add_color_stop_rgb(0, color1[0], color1[1],color1[2])
-                pattern.add_color_stop_rgb(length, color2[0], color2[1], color2[2])
-                context.set_source(pattern)
-
-            elif gradient.get("type") == "radial":
-                start = gradient.get("start").split("-")
-                end = gradient.get("end").split("-")
-                pos1 = 0
-                pos2 = 0
-                pos3 = 0
-                pos4 = 0
-                if start[0] == "top":
-                    pos2 = 0
-                elif start[0] == "mid":
-                    pos2 = .5
-                elif start[0] == "bottom":
-                    pos2 = 1
-                if start[1] == "left":
-                    pos1 = 0
-                elif start[1] == "mid":
-                    pos1 = .5
-                elif start[1] == "right":
-                    pos1 = 1
-                if end[0] == "top":
-                    pos4 = 0
-                elif end[0] == "mid":
-                    pos4 = .5
-                elif end[0] == "bottom":
-                    pos4 = 1
-                if end[1] == "left":
-                    pos3 = 0
-                elif end[1] == "mid":
-                    pos3 = .5
-                elif end[1] == "right":
-                    pos3 = 1
-                color1 = gradient.get("color1")
-                color2 = gradient.get("color2")
-                color1 = [(int(color1[i]+color1[i+1],16)/float(0xFF)) for i in range(0,len(color1),2)]
-                color2 = [(int(color2[i]+color2[i+1],16)/float(0xFF)) for i in range(0,len(color2),2)]
-                radius1 = float(gradient.get("radius1"))*.01
-                radius2 = float(gradient.get("radius2"))*.01
-                pattern = cairo.RadialGradient(pos1, pos2, radius1, pos3, pos4, radius2)
-                
-                pattern.add_color_stop_rgb(0, color1[0], color1[1],color1[2])
-                pattern.add_color_stop_rgb(1, color2[0], color2[1], color2[2])
-                context.set_source(pattern)
+            pattern = SharedFunctions.MakeGradient(gradient, h, w)
+            context.set_source(pattern)
             
             rounded = xml.find("rounded")
             r = float(rounded.get("topleft"))
@@ -247,8 +165,7 @@ class ImageButton(Widget.GroupWidget,clutter.Group):
             context.curve_to(0,0,0,0,r,0)             # Curve to A
 
 
-
-            
+            #Make the outline
             path = context.copy_path()
             context.fill()
             border = xml.find("border")
@@ -276,33 +193,31 @@ class LabelButton(ImageButton):
     __gtype_name__ = 'LabelButton'
 
     def reallocate(self,stage,actorbox,flags):
-        self.resolution = stage.get_resolution()
-        self.stage = stage
-        self.set_x(self.realx)
-        self.set_y(self.realy)
-        self.set_height(self.h)
-        self.set_width(self.w)
         for i in self.get_children():
             i.reallocate(stage,actorbox,flags)
         self.recenter()
-    def allocationchanged(self,stage,actorbox,flags):
-        self.set_height(self._oldgetheight()/(float(self.stage.get_height())/self.resolution[1]))
-        self.set_width(self._oldgetwidth()/(float(self.stage.get_width())/self.resolution[0]))
+
+    def allocationchanged(self,stage,widget):
         self.recenter()
         self.makestates()
-        pass
+    def allocationchanged2(self,stage,actorbox,flags):
+        self.makestates()
+        self.recenter()
     def recenter(self):
+        #self._text.set_scale(pycluttertk._stage.get_width()/pycluttertk._resolution[0],
+        #                     pycluttertk._stage.get_height()/pycluttertk._resolution[1])
+        x = (self.get_width()/2)-(self._text.get_width()/2)
+        y = (self.get_height()/2)-(self._text.get_height()/2)
         self._text.set_x((self.get_width()/2)-(self._text.get_width()/2))
         self._text.set_y((self.get_height()/2)-(self._text.get_height()/2))
     
     def __init__(self,theme,label=" "):
+        Widget.GroupWidget.__init__(self)
         self.pressed = False
         clutter.Group.__init__(self)
         self.theme = theme
         self.themepath=(self.appdatadir+"/Themes/" + theme)
         guixmlfile = open(self.themepath + "/GUI.xml")
-        self.realx = self._oldgetx()
-        self.realy = self._oldgety()
         guixml = ET.XML(guixmlfile.read())
         buttonxml = guixml.find("button")
         self.outxml = buttonxml.find("out")
@@ -310,28 +225,15 @@ class LabelButton(ImageButton):
         self.hoverxml = buttonxml.find("hover")
 
         
-        self._text = Text.Label()
-        self._text.set_text(label)
+        self._text = Text.Label(label)
         
-        self.w = self._text.get_width()+(self._text.w/len(label)*2)
-        self.h = self._text.get_height()*2
-        
-        self._in = self.makestate("in")
-        self._out = self.makestate("out")
-        self._hover = self.makestate("hover")
-        self.add(self._in)
-        self.add(self._out)
-        self.add(self._hover)
+        self.set_width(self._text.get_width()+(self._text.get_width()/len(label)*2))
+        self.set_height(self._text.get_height()*2)
+        self._textures = []
+        self.makestates()
         self.add(self._text)
-        self.recenter()
-        
-        self._out.show()
-        self._hover.hide()
-        self._in.hide()
         self._text.show()
-        self._textures = (self._out,
-                            self._hover,
-                            self._in)
+        self.recenter()
         
         
         self.set_reactive(True)
@@ -340,4 +242,4 @@ class LabelButton(ImageButton):
         self.connect("enter-event", self.enter)
         self.connect("leave-event", self.leave)
         self.connect('motion-event',self.motion)
-        self.connect('allocation-changed',self.allocationchanged)
+        self.connect('allocation-changed',self.allocationchanged2)

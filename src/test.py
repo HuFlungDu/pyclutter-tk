@@ -3,7 +3,6 @@ import pycluttertk
 global guistage
 
 def clicknewbutton(stage, event):
-    global guistage
     newbutton2 = pycluttertk.LabelButton("snesOS","I test packing")
     vbox.pack(newbutton2,True,True,True,
                      clutter.BOX_ALIGNMENT_CENTER,clutter.BOX_ALIGNMENT_CENTER)
@@ -13,6 +12,7 @@ def clicknewbutton(stage, event):
 def main():
     global guistage
     global vbox
+    guistage = pycluttertk.GUI()
     #clutter.set_motion_events_enabled(True)
     newbutton = pycluttertk.LabelButton("snesOS","This is a big button")
     newbutton2 = pycluttertk.LabelButton("snesOS","This is also a big button")
@@ -30,8 +30,11 @@ def main():
     newbutton3 = pycluttertk.LabelButton("snesOS","I test packing")
     vbox.pack(newbutton3,True,True,True,
                      clutter.BOX_ALIGNMENT_CENTER,clutter.BOX_ALIGNMENT_CENTER)
+    newbutton4 = pycluttertk.LabelButton("snesOS","I test packing")
+    vbox.pack(newbutton4,True,True,True,
+                     clutter.BOX_ALIGNMENT_CENTER,clutter.BOX_ALIGNMENT_CENTER)
 
-    guistage = pycluttertk.GUI()
+    
     guistage.set_color(clutter.Color(red=0xff, green=0xcc, blue=0xcc, alpha=0xff))
     #stage.set_size(width=1024, height=768)
     guistage.set_resolution(width=1024,height=768)
@@ -39,7 +42,7 @@ def main():
     #newwindow.connect("clicked",clickwindow)
     #stage.add(newbutton)
 
-    newbutton.show()
+    #newbutton.show()
     newbutton.connect("clicked",clicknewbutton)
     #newbutton.connect("motion",newbuttonmotion)
     guistage.set_user_resizable(True)
@@ -47,4 +50,5 @@ def main():
     guistage.connect('destroy', clutter.main_quit)
 
     clutter.main()
-main()
+if __name__ == "__main__":
+    main()
