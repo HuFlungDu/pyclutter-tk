@@ -5,7 +5,6 @@ import Texture
 import Text
 import Widget
 import SharedFunctions
-import pycluttertk
 
 class ImageButton(Widget.GroupWidget,clutter.Group):
     __gtype_name__ = 'ImageButton'
@@ -18,14 +17,10 @@ class ImageButton(Widget.GroupWidget,clutter.Group):
                 'resized' : ( gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, (gobject.TYPE_PYOBJECT,)) #@UndefinedVariable
         }
 
-    def __init__(self,theme,width,height):
+    def __init__(self,theme):
         Widget.GroupWidget.__init__(self)
-        self._width = width
-        self._height = height
         self.pressed = False
         clutter.Group.__init__(self)
-        self._realx = self._oldgetx()
-        self._realy = self._oldgety()
         self.theme = theme
         self.themepath=(self.appdatadir+"/Themes/" + theme)
         guixmlfile = open(self.themepath + "/GUI.xml")
@@ -58,9 +53,6 @@ class ImageButton(Widget.GroupWidget,clutter.Group):
             for i in [x for x in self.get_children() if not x in self._textures]:
                 i.set_y(i.get_y()+1)
                 i.set_x(i.get_x()+1)
-        if self.get_stage() is not None:
-            event.y = event.y/(float(pycluttertk._stage.get_height())/pycluttertk._resolution[1])
-            event.x = event.x/(float(pycluttertk._stage.get_width())/pycluttertk._resolution[0])
         self.emit("clicked",event)
     def released(self,stage,event):
         if self.pressed:
@@ -72,9 +64,6 @@ class ImageButton(Widget.GroupWidget,clutter.Group):
                 for i in [x for x in self.get_children() if not x in self._textures]:
                     i.set_y(i.get_y()-1)
                     i.set_x(i.get_x()-1)
-            if self.get_stage() is not None:
-                event.y = event.y/(float(pycluttertk._stage.get_height())/pycluttertk._resolution[1])
-                event.x = event.x/(float(pycluttertk._stage.get_width())/pycluttertk._resolution[0])
                 
             self.emit("released",event)
     def enter(self,stage,event):
@@ -172,7 +161,8 @@ class ImageButton(Widget.GroupWidget,clutter.Group):
             color = border.get("color")
             color = [(int(color[i]+color[i+1],16)/float(0xFF)) for i in range(0,len(color),2)]
             context.append_path(path)
-            context.set_source_rgb(color[0],color[1],color[2])
+            alpha = float(border.get("alpha"))
+            context.set_source_rgba(color[0],color[1],color[2],alpha)
             context.set_line_width(1)
             context.stroke()
             
@@ -201,13 +191,9 @@ class LabelButton(ImageButton):
         self.recenter()
         self.makestates()
     def allocationchanged2(self,stage,actorbox,flags):
-        self.makestates()
-        self.recenter()
+        self.set_width(actorbox.x2-actorbox.x1)
+        self.set_height(actorbox.y2-actorbox.y1)
     def recenter(self):
-        #self._text.set_scale(pycluttertk._stage.get_width()/pycluttertk._resolution[0],
-        #                     pycluttertk._stage.get_height()/pycluttertk._resolution[1])
-        x = (self.get_width()/2)-(self._text.get_width()/2)
-        y = (self.get_height()/2)-(self._text.get_height()/2)
         self._text.set_x((self.get_width()/2)-(self._text.get_width()/2))
         self._text.set_y((self.get_height()/2)-(self._text.get_height()/2))
     
@@ -243,3 +229,4 @@ class LabelButton(ImageButton):
         self.connect("leave-event", self.leave)
         self.connect('motion-event',self.motion)
         self.connect('allocation-changed',self.allocationchanged2)
+        self.connect('resized',self.allocationchanged)

@@ -3,14 +3,6 @@ import pango
 import Widget
 
 class Label(Widget.TextWidget,clutter.Text):
-    
-
-    _oldsettext = clutter.Text.set_text
-    def set_text(self,text):
-        self._oldsettext(text)
-
-        
-
     def __init__(self,text=""):
         Widget.TextWidget.__init__(self)
         clutter.Text.__init__(self)

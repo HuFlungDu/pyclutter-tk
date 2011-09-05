@@ -44,6 +44,7 @@ class VBox(_Box):
             width = max(width,child.get_width())
         self.set_width(width)
         self.set_height(height)
+        print self.get_height()
             
     def __init__(self,easingduration=0,easingmode=None,homogeneous=False,
                  packstart=0,spacing=0,useanimations=False):
@@ -59,6 +60,13 @@ class HBox(_Box):
     def pack(self,widget,expand,xfill,yfill,x_align,y_align):
         self.set_height(max(widget.get_height(), self.get_height()))
         self.layout.pack(widget,expand,xfill,yfill,x_align,y_align)
+        height = 0
+        width = 0
+        for child in self.get_children():
+            width += child.get_width()
+            height = max(height,child.get_height())
+        self.set_width(width)
+        self.set_height(height)
     def __init__(self,easingduration=0,easingmode=None,homogeneous=False,
                  packstart=0,spacing=0,useanimations=False):
         _Box.__init__(self,easingduration,easingmode,homogeneous,

@@ -14,8 +14,7 @@ else:
 if not os.path.isdir(homedir+"/.pyclutter-tk"):
     os.mkdir(homedir+"/.pyclutter-tk")
 if not os.path.isdir(homedir+"/.pyclutter-tk"+"/Themes"):
-    libdir = os.path.dirname(os.path.abspath(
-                getattr(__main__,'__file__','__main__.py')))
+    libdir = os.path.dirname(os.path.abspath(__file__))
     shutil.copytree(libdir+"/Themes",homedir+"/.pyclutter-tk"+"/Themes")
     
 _resolution = (0,0)
@@ -24,8 +23,17 @@ _stage = None
 from Button import ImageButton, LabelButton
 from GUI import GUI
 from layouters import HBox, VBox
-from menu import *
+from Menu import Menu
 from Text import Label
 from Texture import CairoTexture, Texture
 from Window import Window
 import Errors
+
+def reload_settings():
+    if  os.path.isdir(homedir+"/.pyclutter-tk"):
+        shutil.rmtree(homedir+"/.pyclutter-tk")
+    os.mkdir(homedir+"/.pyclutter-tk")
+    if os.path.isdir(homedir+"/.pyclutter-tk"+"/Themes"):
+        shutil.rmtree(homedir+"/.pyclutter-tk"+"/Themes")
+    libdir = os.path.dirname(os.path.abspath(__file__))
+    shutil.copytree(libdir+"/Themes",homedir+"/.pyclutter-tk"+"/Themes")

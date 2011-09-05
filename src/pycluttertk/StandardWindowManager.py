@@ -31,8 +31,8 @@ class BorderedWindow(clutter.Group):
         window.connect('allocation-changed',self.resizetowindow)
         self._realx = window.get_x()
         self._realy = window.get_y()
-        self._height = window._height
-        self._width = window._width
+        self._height = window.get_height()
+        self._width = window.get_width()
     def releaseall(self,stage,event):
         for i in self.get_children():
             i.releaseall(stage,event)

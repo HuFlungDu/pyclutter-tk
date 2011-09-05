@@ -1,6 +1,7 @@
 import clutter
 import gobject
 import pycluttertk
+import Widget
 
 
 class GUI(clutter.Stage):
@@ -13,16 +14,21 @@ class GUI(clutter.Stage):
     def reallocate(self,stage,actorbox,flags):
         self._height = actorbox.y2 - actorbox.y1
         self._width = actorbox.x2 - actorbox.x1
+        if self._use_resolution:
+            self.mainbox.set_scale(self._width/pycluttertk._resolution[0],
+                                   self._height/pycluttertk._resolution[1])
+        else:
+            self.set_resolution(self._width, self._height)
+        
+    def UpdateResolution(self):
         self.mainbox.set_scale(self._width/pycluttertk._resolution[0],
-                                self._height/pycluttertk._resolution[1])
-        
-        
-        #for i in self.get_children():
-        #    i.reallocate(self,actorbox,flags)
+                                self._height/pycluttertk._resolution[1])    
     def set_use_resolution(self,useres):
         self._use_resolution = useres
     def __init__(self, windowmanager = None, width = 1024, height = 768):
         self.mainbox = clutter.Group()
+        self._width = width
+        self._height = height
         self.set_resolution(width, height)
         
         clutter.Stage.__init__(self)
@@ -36,6 +42,7 @@ class GUI(clutter.Stage):
             self._windowmanager = StandardWindowManager.WindowManager()
         
         pycluttertk._stage = self
+        self.show()
                     
         
         
@@ -43,8 +50,7 @@ class GUI(clutter.Stage):
         self._resolutionx = width
         self._resolutiony = height
         pycluttertk._resolution = (self._resolutionx,self._resolutiony)
-        self.reallocate(self,clutter.ActorBox(0,0,self.get_width(),self.get_height())
-                        ,clutter.AllocationFlags(0))
+        self.UpdateResolution()
         
     def get_resolution(self):
         return (self._resolutionx,self._resolutiony)

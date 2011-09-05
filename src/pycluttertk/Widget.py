@@ -36,8 +36,7 @@ class TextWidget(Widget):
     def __init__(self):
         Widget.__init__(self)
     def reallocate(self,stage,actorbox,flags):
-        self.set_scale((float(pycluttertk._stage.get_width())/pycluttertk._resolution[0]),
-                       (float(pycluttertk._stage.get_height())/pycluttertk._resolution[1]))
+        pass
 
 class PictureWidget(Widget):
     def __init__(self):

@@ -34,12 +34,14 @@ def MakeGradient(gradient, h, w):
             pos3 = w
         color1 = gradient.get("color1")
         color2 = gradient.get("color2")
+        alpha1 = float(gradient.get("alpha1"))
+        alpha2 = float(gradient.get("alpha2"))
         color1 = [(int(color1[i] + color1[i + 1], 16) / float(0xFF)) for i in range(0, len(color1), 2)]
         color2 = [(int(color2[i] + color2[i + 1], 16) / float(0xFF)) for i in range(0, len(color2), 2)]
         pattern = cairo.LinearGradient(pos1, pos2, pos3, pos4)
         length = math.sqrt((pos4 - pos2) ** 2 + (pos3 - pos1) ** 2)
-        pattern.add_color_stop_rgb(0, color1[0], color1[1], color1[2])
-        pattern.add_color_stop_rgb(length, color2[0], color2[1], color2[2])
+        pattern.add_color_stop_rgba(0, color1[0], color1[1], color1[2],alpha1)
+        pattern.add_color_stop_rgba(length, color2[0], color2[1], color2[2],alpha2)
     elif gradient.get("type") == "radial":
         start = gradient.get("start").split("-")
         end = gradient.get("end").split("-")
@@ -73,11 +75,13 @@ def MakeGradient(gradient, h, w):
             pos3 = w
         color1 = gradient.get("color1")
         color2 = gradient.get("color2")
+        alpha1 = float(gradient.get("alpha1"))
+        alpha2 = float(gradient.get("alpha2"))
         color1 = [(int(color1[i] + color1[i + 1], 16) / float(0xFF)) for i in range(0, len(color1), 2)]
         color2 = [(int(color2[i] + color2[i + 1], 16) / float(0xFF)) for i in range(0, len(color2), 2)]
         radius1 = float(gradient.get("radius1")) * .01
         radius2 = float(gradient.get("radius2")) * .01
         pattern = cairo.RadialGradient(pos1, pos2, radius1, pos3, pos4, radius2)
-        pattern.add_color_stop_rgb(0, color1[0], color1[1], color1[2])
-        pattern.add_color_stop_rgb(1, color2[0], color2[1], color2[2])
+        pattern.add_color_stop_rgba(0, color1[0], color1[1], color1[2],alpha1)
+        pattern.add_color_stop_rgba(1, color2[0], color2[1], color2[2],alpha2)
     return pattern

@@ -26,15 +26,11 @@ class Window(Widget.GroupWidget,clutter.Group):
         }
     def add(self,widget):
         if not self.widget is None:
-            print "not connected"
             raise Errors.AddError("Can't pack more than 1 widget into a window")
         else:
-            widget.set_x(0)
-            widget.set_y(0)
             clutter.Group.add(self,widget)
             self.widget = widget
             self.widgetconnect = widget.connect("resized",self._widgetallocationchanged)
-            print "connected"
     def _widgetallocationchanged(self,stage,widget):
         if stage.get_width() < self.get_width():
             self.set_width(max(stage.get_width(),self.get_size_request()[0]))
@@ -44,13 +40,13 @@ class Window(Widget.GroupWidget,clutter.Group):
             self.set_height(max(stage.get_height(),self.get_size_request()[1]))
         else:
             self.set_height(stage.get_height())
-        print self.get_width(),self.get_height()
-
-        print "did get here"
+        #print self.get_height(), stage.get_height()
+        #self.make()
     def _allocationchanged(self,stage,actorbox,flags):
         if not self.widget is None:
             self.widget.set_width(max(self.get_width(),self.widget.get_size_request()[0]))
-            self.widget.set_height(max(self.get_height(),self.widget.get_size_request()[1]))
+            self.widget.set_height(max(self.get_height(),self.widget.get_size_request()[1])) 
+        self.make()
         
     def drop_widget(self):
         if not self.widget is None:
@@ -60,24 +56,24 @@ class Window(Widget.GroupWidget,clutter.Group):
         self._name=name
     def get_name(self):
         return self._name
-    def __init__(self,theme,name=""):
+    def __init__(self,theme,name="",height = 100, width = 100):
         Widget.GroupWidget.__init__(self)
         clutter.Group.__init__(self)
         self.widget = None
         self.connect("allocation-changed",self._allocationchanged)
         self._name = name
-        self._height=100
-        self._width=100
+        self.set_height(height)
+        self.set_width(width)
         
-        self.theme = theme
         self.theme = theme
         self.themepath=(self.appdatadir+"/Themes/"+theme)
         guixmlfile = open(self.themepath + "/GUI.xml")
         guixml = ET.XML(guixmlfile.read())
         windowxml = guixml.find("window")
         self.basexml = windowxml.find("base")
-        self._windowtex=self.make()
-        clutter.Group.add(self, self._windowtex)
+        self._windowtex = None
+        self.make()
+        
         
         self.set_reactive(True)
         self.connect("button-press-event", self.clicked)
@@ -102,25 +98,36 @@ class Window(Widget.GroupWidget,clutter.Group):
         self.emit("motion",event)
 
     def make(self):
+        if self._windowtex != None:
+            self.remove(self._windowtex)
+        widget = self.widget
+        self.remove_all()
+        self.drop_widget()
+        self._windowtex = self.makestate()
+        clutter.Group.add(self, self._windowtex)
+        if widget != None:
+            self.add(widget)
+    def makestate(self):
+        
         xml = self.basexml
         if xml.get("type") == "gradient":
-            window=Texture.CairoTexture(self._height, self._width)
+            h = max(self.get_height(),1)
+            w = max(self.get_width(),1)
+            window=Texture.CairoTexture(int(w), int(h))
             constraint = clutter.BindConstraint(self,clutter.BIND_SIZE,0)
             window.add_constraint(constraint)
             constraint = clutter.BindConstraint(self,clutter.BIND_POSITION,0)
             window.add_constraint(constraint)
             context = window.cairo_create()
-            context.scale(self._height, self._width)
             gradient = xml.find("gradient")
             
-            pattern = SharedFunctions.MakeGradient(gradient, self._height, self._width)
+            pattern = SharedFunctions.MakeGradient(gradient, h, w)
             context.set_source(pattern)
             
-            
             context.move_to(0,0)                    
-            context.line_to(1,0)
-            context.line_to(1,1)
-            context.line_to(0,1)
+            context.line_to(w,0)
+            context.line_to(w,h)
+            context.line_to(0,h)
             context.line_to(0,0)
             context.fill()
             del(context)

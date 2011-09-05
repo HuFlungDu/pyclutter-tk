@@ -2,24 +2,47 @@
 <GUI>
 	<window>
 		<base type="gradient">
-			<gradient type="linear" color1="edeceb" color2="edeceb" start="top-left" end="bottom-left"/>
+			<gradient type="linear" color1="edeceb" color2="edeceb" start="top-left" end="bottom-left" alpha1="1" alpha2="1"/>
 		</base>
 	</window>
 	<button>
 		<out type="gradient">
 			<rounded topleft="20" topright="20" bottomleft="20" bottomright="20"/>
 			<gradient type="linear"  color1="f3f5f3" color2="d9dcd9" alpha1="1" alpha2="1" start="top-left" end="bottom-left"/>
-			<border color="000000" alpha="1" top="2" bottom="2" left="2" right="2"/>
+			<border color="cbcecb" alpha="1" top="2" bottom="2" left="2" right="2"/>
 		</out>
 		<in type="gradient">
 			<rounded topleft="20" topright="20" bottomleft="20" bottomright="20"/>
 			<gradient type="linear" color1="cbcecb" color2="d9dcd9" alpha1="1" alpha2="1" start="top-left" end="bottom-left"/>
-			<border color="000000" alpha="1" top="2" bottom="2" left="2" right="2"/>
+			<border color="cbcecb" alpha="1" top="2" bottom="2" left="2" right="2"/>
 		</in>
 		<hover type="gradient">
 			<rounded topleft="20" topright="20" bottomleft="20" bottomright="20"/>
 			<gradient type="linear" color1="FFFFFF" alpha1="1" alpha2="1" color2="d9dcd9" start="top-left" end="bottom-left"/>
-			<border color="000000" alpha="1" top="2" bottom="2" left="2" right="2"/>
+			<border color="cbcecb" alpha="1" top="2" bottom="2" left="2" right="2"/>
 		</hover>
 	</button>
+	<menu>
+		<base type="gradient">
+			<gradient type="linear" color1="edeceb" color2="edeceb" alpha1="1" alpha2="1" start="top-left" end="bottom-left"/>
+			<border color="000000" alpha="0" top="2" bottom="2" left="2" right="2"/>
+		</base>
+	</menu>
+	<menuitem>
+		<out type="gradient">
+			<rounded topleft="10" topright="10" bottomleft="0" bottomright="0"/>
+			<gradient type="linear"  color1="f3f5f3" color2="d9dcd9" alpha1="0" alpha2="0" start="top-left" end="bottom-left"/>
+			<border color="cbcecb" alpha="0" top="2" bottom="2" left="2" right="2"/>
+		</out>
+		<in type="gradient">
+			<rounded topleft="10" topright="10" bottomleft="0" bottomright="0"/>
+			<gradient type="linear" color1="cbcecb" color2="d9dcd9" alpha1="1" alpha2="1" start="top-left" end="bottom-left"/>
+			<border color="cbcecb" alpha="1" top="2" bottom="2" left="2" right="2"/>
+		</in>
+		<hover type="gradient">
+			<rounded topleft="10" topright="10" bottomleft="0" bottomright="0"/>
+			<gradient type="linear" color1="FFFFFF" alpha1="1" alpha2="1" color2="d9dcd9" start="top-left" end="bottom-left"/>
+			<border color="cbcecb" alpha="1" top="2" bottom="2" left="2" right="2"/>
+		</hover>
+	</menuitem>
 </GUI>
