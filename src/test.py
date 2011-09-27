@@ -3,7 +3,7 @@ import pycluttertk
 global guistage
 
 def clicknewbutton(stage, event):
-    print event
+    print "Did it"
     pass
     #newbutton2 = pycluttertk.LabelButton("snesOS","I test packing")
     #vbox.pack(newbutton2,True,True,True,
@@ -24,11 +24,18 @@ def main():
     #newwindow.set_height(200)
     newwindow.request_size(300,200)
     mainmenu = pycluttertk.Menu("snesOS")
-    mainmenu.set_height(20)
-    mainmenu.connect("clicked",clicknewbutton)
+    menuitem = pycluttertk.MenuItem("snesOS", label="File")
+    menuitem.show()
+    mainmenu.add(menuitem)
+    
+
+    #mainmenu.set_height(20)
+    
+    menuitem.connect("clicked",clicknewbutton)
     vbox = pycluttertk.VBox()
     hbox = pycluttertk.HBox()
     newwindow.add(vbox)
+    
     vbox.pack(mainmenu,False,True,True,
                      clutter.BOX_ALIGNMENT_CENTER,clutter.BOX_ALIGNMENT_CENTER)
     vbox.pack(hbox,False,True,True,
@@ -45,9 +52,6 @@ def main():
                      clutter.BOX_ALIGNMENT_CENTER,clutter.BOX_ALIGNMENT_CENTER)
     newbutton5 = pycluttertk.LabelButton("snesOS","I test packing")
     vbox.pack(newbutton5,False,True,True,
-                     clutter.BOX_ALIGNMENT_CENTER,clutter.BOX_ALIGNMENT_CENTER)
-    newbutton6 = pycluttertk.LabelButton("snesOS","I test packing")
-    vbox.pack(newbutton6,False,True,True,
                      clutter.BOX_ALIGNMENT_CENTER,clutter.BOX_ALIGNMENT_CENTER)
 
     
