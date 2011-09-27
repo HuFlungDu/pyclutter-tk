@@ -23,7 +23,7 @@ _stage = None
 from Button import ImageButton, LabelButton
 from GUI import GUI
 from layouters import HBox, VBox
-from Menu import Menu
+from Menu import Menu,MenuItem
 from Text import Label
 from Texture import CairoTexture, Texture
 from Window import Window
